@@ -360,9 +360,14 @@ public class BodyMecanim : MonoBehaviour
 		
 		if (isActive == true)
 			this.ResetAnimation();
-
 		switch (gestureName.ToUpper())
 		{
+        case "KARATEGREET":
+            this.animator.SetTrigger("KarateGreetTrigger");
+            break;
+        case "BOW":
+            this.animator.SetTrigger("BowDownTrigger");
+            break;
 		case "BREAKDANCE": 
 			this.animator.SetBool("B_Breakdance", isActive); 
 			break;

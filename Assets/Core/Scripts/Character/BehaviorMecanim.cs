@@ -217,6 +217,8 @@ public class BehaviorMecanim : MonoBehaviour
 
     public Node Node_BodyAnimation(Val<string> gestureName, Val<bool> start)
     {
+		
+		print(gestureName.Value);
         return new LeafInvoke(
             () => this.Character.BodyAnimation(gestureName, start),
             () => this.Character.BodyAnimation(gestureName, false));
