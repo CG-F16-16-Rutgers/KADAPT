@@ -8,23 +8,82 @@ public class MyBehaviorTree2 : MonoBehaviour
 	public Transform wander1;
 	public Transform wander2;
 	public Transform wander3;
-	public GameObject participant;
+    public Transform wander4;
+    public Transform wander5;
+    public Transform wander6;
+    public Transform wander7;
+    public Transform wander8;
+
+    public Transform stride1;
+    public Transform stride2;
+    public Transform stride3;
+    public Transform stride4;
+    public Transform stride5;
+    public Transform stride6;
+    public Transform stride7;
+    public Transform stride8;
+
+    public Transform setUpPoint1;
+    public Transform pushThroughPoint1;
+    public Transform setUpPoint2;
+    public Transform pushThroughPoint2;
+    public GameObject participant;
 	public GameObject police;
+    public GameObject mayor;
+    public GameObject[] pickup;
+    public Transform townMeetingLoc;
 
 	private BehaviorAgent behaviorAgent;
-	// Use this for initialization
-	void Start ()
+
+    private bool TownMeeting = false;
+    private static bool BarrierSelected;
+    private GameObject barrier;
+    // Use this for initialization
+    void Start ()
 	{
 		behaviorAgent = new BehaviorAgent (this.BuildTreeRoot ());
 		BehaviorManager.Instance.Register (behaviorAgent);
 		behaviorAgent.StartBehavior ();
-	}
+
+
+        barrier = GameObject.FindGameObjectWithTag("Barrier");
+    }
 
 	// Update is called once per frame
 	void Update ()
 	{
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+                Vector3 position = barrier.transform.position;
+                position.x++;
+                barrier.transform.position = position;
 
-	}
+        }
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+
+                Vector3 position = barrier.transform.position;
+                position.x--;
+                barrier.transform.position = position;
+
+        }
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+
+                Vector3 position = barrier.transform.position;
+                position.z++;
+                barrier.transform.position = position;
+
+        }
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+
+                Vector3 position = barrier.transform.position;
+                position.z--;
+                barrier.transform.position = position;
+
+        }
+    }
 
     /*	protected Node ST_ApproachAndWait(Transform target)
         {
@@ -57,13 +116,119 @@ public class MyBehaviorTree2 : MonoBehaviour
             //return roaming;
         }*/
 
-    protected Node ST_ApproachAndWait(Transform target)
+    protected Node GoToMeeting()
+    {
+        Sequence policeGoToMeeting = new Sequence(police.GetComponent<BehaviorMecanim>().Node_GoToUpToRadius(townMeetingLoc.position, 5.0f),
+                                                    new LeafWait(1000),
+                                                    police.GetComponent<BehaviorMecanim>().Node_OrientTowards(townMeetingLoc.position),
+                                                    new LeafWait(1000));
+
+        Sequence citizenGoToMeeting = new Sequence(participant.GetComponent<BehaviorMecanim>().Node_GoToUpToRadius(townMeetingLoc.position, 5.0f),
+                                                    new LeafWait(1000),
+                                                    participant.GetComponent<BehaviorMecanim>().Node_OrientTowards(townMeetingLoc.position),
+                                                    new LeafWait(1000));
+
+        Sequence mayorGoToMeeting = new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(townMeetingLoc.position),
+                                                    new LeafWait(1000),
+                                                    mayor.GetComponent<BehaviorMecanim>().Node_OrientTowards(police.transform.position),
+                                                    new LeafWait(1000));
+
+        return new SequenceParallel(policeGoToMeeting, citizenGoToMeeting, mayorGoToMeeting);
+    }
+
+
+    protected Node HaveTownMeeting()
+    {
+        Sequence policeAtMeeting= new Sequence(   police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                                    new LeafWait(1000),
+                                                    police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                                    new LeafWait(1000),
+                                                   // police.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINT", true),
+                                                    new LeafWait(1000),
+                                                    police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                                    new LeafWait(1000),
+                                                    police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", false)
+                                                    );
+
+        Sequence citizenAtMeeting = new Sequence(participant.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                            new LeafWait(1000),
+                                           // participant.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINT", true),
+                                            new LeafWait(1000),
+                                            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("B_Talking_On_Phone", true),
+                                            new LeafWait(1000),
+                                            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("ARMFLEX", true),
+                                            new LeafWait(1000),
+                                            participant.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", false)
+                                            );
+
+
+        Sequence mayorsMeeting = new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                                new LeafWait(1000),
+                                                mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("CROWDPUMP", true),
+                                                new LeafWait(1000),
+                                                mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                                new LeafWait(1000),
+                                                mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", false)
+                                               //mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINT", true)
+                                               );
+
+        return new SequenceParallel(policeAtMeeting, citizenAtMeeting, mayorsMeeting) ; 
+    }
+
+    /*protected Node CallTownMeeting()
+    {
+        //TownMeeting = true;
+        return mayor.GetComponent<BehaviorMecanim>().Node_GoToUpToRadius(townMeetingLoc.position, 1.0f);
+    }*/
+
+
+    protected Node ST_PushCrates()
+    {
+        return new Sequence (
+            participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint2.position),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_GoTo(pushThroughPoint2.position),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("PUSHING", true),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("ARMFLEX", true),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint2.position),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint1.position),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_GoTo(pushThroughPoint1.position),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("PUSHING", true),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("ARMFLEX", true),
+            new LeafWait(2000),
+            participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint1.position),
+            new LeafWait(2000)
+            //participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", true)
+            //new LeafWait(2000)
+            );
+    }
+
+    protected Node PO_ApproachAndWait(Transform target)
+    {
+        Val<Vector3> position = Val.V(() => target.position);
+        //print(position);
+
+        //this was the original behaviour
+        return new Sequence(police.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(1000));
+    }
+
+    protected Node MO_ApproachAndWait(Transform target)
     {
         Val<Vector3> position = Val.V(() => target.position);
 
+        //print(position);
+
         //this was the original behaviour
-        return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(1000));
+        return new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(2000));
     }
+
     protected Node ST_KarateGreet()
     {
 
@@ -78,19 +243,98 @@ public class MyBehaviorTree2 : MonoBehaviour
         return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BOW", true), new LeafWait(1000));
     }
 
+    protected Node ST_ApproachAndGrab(Transform target)
+    {
+        Val<Vector3> position = Val.V(() => target.position);
+
+        //this was the original behaviour
+        return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_GoTo(position), 
+                            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("PICKUPRIGHT", true), 
+                            new LeafWait(1000));
+    }
+
+    private Transform GrabThis()
+    {
+        //Val<Vector3> position = Val.V(() => target.position);
+
+        //print("Sending BOW Command");
+        GameObject tMin = null;
+        float minDist = Mathf.Infinity;
+        Vector3 currentPos = transform.position;
+        foreach (GameObject t in pickup)
+        {
+            float dist = Vector3.Distance(t.transform.position, currentPos);
+            if (dist < minDist)
+            {
+                tMin = t;
+                minDist = dist;
+            }
+        }
+        return tMin.transform;
+
+
+        
+    }
+
+    protected Node BDNow()
+    {
+        return new SequenceParallel(participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", true),
+        police.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", true),
+        mayor.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", true));
+    }
+
+    protected Node BDEnd()
+    {
+        return new SequenceParallel(participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", false),
+        police.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", false),
+        mayor.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", false));
+    }
+
     protected Node BuildTreeRoot()
     {
         Val<float> pp = Val.V(() => police.transform.position.z);
         Func<bool> act = () => (police.transform.position.z - participant.transform.position.z< 10);
+
+        Val<float> mpp = Val.V(() => mayor.transform.position.z);
+        Func<bool> mact = () => (mayor.transform.position.z - participant.transform.position.z < 10);
+
         Node roaming = //new DecoratorLoop(
-            new SequenceShuffle(
-                this.ST_ApproachAndWait(this.wander1),
-                this.ST_ApproachAndWait(this.wander2),
-                this.ST_ApproachAndWait(this.wander3),
+            new Sequence(
                 this.ST_KarateGreet(),
-                this.ST_Bow());
-        Node trigger = new SequenceShuffle(new LeafAssert(act), this.ST_ApproachAndWait(this.wander1));
-        Node root = new DecoratorLoop(new DecoratorForceStatus(RunStatus.Success, new SequenceParallel(trigger, roaming)));
+                this.ST_PushCrates(),
+                new LeafWait(1000)                
+                );
+        Node trigger = new SequenceShuffle(new LeafAssert(act), 
+                                            this.PO_ApproachAndWait(this.wander1), 
+                                            this.PO_ApproachAndWait(this.wander2), 
+                                            this.PO_ApproachAndWait(this.wander3),
+                                            this.PO_ApproachAndWait(this.wander4),
+                                            this.PO_ApproachAndWait(this.wander5),
+                                            this.PO_ApproachAndWait(this.wander6),
+                                            this.PO_ApproachAndWait(this.wander7),
+                                            this.PO_ApproachAndWait(this.wander8));
+
+        Node oversee = new SequenceShuffle(new LeafAssert(mact),
+                                            this.MO_ApproachAndWait(this.stride1),
+                                            this.MO_ApproachAndWait(this.stride2),
+                                            this.MO_ApproachAndWait(this.stride3),
+                                            this.MO_ApproachAndWait(this.stride4),
+                                            this.MO_ApproachAndWait(this.stride5),
+                                            this.MO_ApproachAndWait(this.stride6),
+                                            this.MO_ApproachAndWait(this.stride7),
+                                            this.MO_ApproachAndWait(this.stride8));
+
+        //Node mayorsPropoganda = new Sequence(oversee, this.CallTownMeeting()); 
+
+        Node root = new DecoratorLoop(
+                        new DecoratorForceStatus(RunStatus.Success, new SequenceShuffle(
+                            new SelectorParallel(trigger, roaming, oversee),
+                            new LeafWait(2000),
+                            new Sequence (this.GoToMeeting(), new LeafWait(2000), this.HaveTownMeeting()) 
+                            )));
+
+        
+
         return root;
 
 

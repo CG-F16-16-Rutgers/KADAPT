@@ -252,6 +252,10 @@ public class BodyMecanim : MonoBehaviour
             case "POINTING": 
                 this.animator.SetBool("H_Pointing", isActive); 
                 break;
+            case "POINT":
+                if (isActive)
+                    this.animator.SetTrigger("H_Point");
+                break;
             case "WONDERFUL": 
                 this.animator.SetBool("H_Wonderful", isActive); 
                 break;
@@ -362,6 +366,10 @@ public class BodyMecanim : MonoBehaviour
 			this.ResetAnimation();
 		switch (gestureName.ToUpper())
 		{
+        case "ARMFLEX":
+                if (isActive)
+                    this.animator.SetTrigger("B_ArmFlex");
+            break;
         case "KARATEGREET":
             this.animator.SetTrigger("KarateGreetTrigger");
             break;
@@ -391,10 +399,19 @@ public class BodyMecanim : MonoBehaviour
                 this.animator.SetTrigger("B_Talking_On_Phone");
             break;
         case "DYING":
-            if (isActive)
-                this.animator.SetTrigger("B_Dying");
+                if (isActive)
+                {
+                    this.animator.SetTrigger("B_Dying");
+                    
+                }
             break;
-        case "DUCK":
+        case "PUSHING":
+                if (isActive)
+
+                    this.animator.SetTrigger("B_Pushing");         
+
+                break;
+            case "DUCK":
             this.animator.SetBool("B_Duck", isActive);
             break;
 		}
