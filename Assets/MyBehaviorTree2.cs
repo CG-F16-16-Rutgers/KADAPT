@@ -52,7 +52,7 @@ public class MyBehaviorTree2 : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        /*if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
                 Vector3 position = barrier.transform.position;
                 position.x++;
@@ -67,11 +67,11 @@ public class MyBehaviorTree2 : MonoBehaviour
                 barrier.transform.position = position;
 
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        else*/ if (Input.GetKeyDown(KeyCode.DownArrow))
         {
 
                 Vector3 position = barrier.transform.position;
-                position.z++;
+                position.x++;
                 barrier.transform.position = position;
 
         }
@@ -79,7 +79,7 @@ public class MyBehaviorTree2 : MonoBehaviour
         {
 
                 Vector3 position = barrier.transform.position;
-                position.z--;
+                position.x--;
                 barrier.transform.position = position;
 
         }
@@ -90,13 +90,13 @@ public class MyBehaviorTree2 : MonoBehaviour
             Val<Vector3> position = Val.V (() => target.position);
 
             //print("Sending BOW Command");
-            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BOW", true), new LeafWait(1000));
+            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BOW", true), new LeafWait(500));
 
             //print("Sending KARATEGREET Command");
-            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true), new LeafWait(1000));
+            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true), new LeafWait(500));
 
             //this was the original behaviour
-            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(1000));
+            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(500));
         }
 
         protected Node BuildTreeRoot()
@@ -119,19 +119,19 @@ public class MyBehaviorTree2 : MonoBehaviour
     protected Node GoToMeeting()
     {
         Sequence policeGoToMeeting = new Sequence(police.GetComponent<BehaviorMecanim>().Node_GoToUpToRadius(townMeetingLoc.position, 5.0f),
-                                                    new LeafWait(1000),
+                                                    new LeafWait(500),
                                                     police.GetComponent<BehaviorMecanim>().Node_OrientTowards(townMeetingLoc.position),
-                                                    new LeafWait(1000));
+                                                    new LeafWait(500));
 
         Sequence citizenGoToMeeting = new Sequence(participant.GetComponent<BehaviorMecanim>().Node_GoToUpToRadius(townMeetingLoc.position, 5.0f),
-                                                    new LeafWait(1000),
+                                                    new LeafWait(500),
                                                     participant.GetComponent<BehaviorMecanim>().Node_OrientTowards(townMeetingLoc.position),
-                                                    new LeafWait(1000));
+                                                    new LeafWait(500));
 
         Sequence mayorGoToMeeting = new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(townMeetingLoc.position),
-                                                    new LeafWait(1000),
+                                                    new LeafWait(500),
                                                     mayor.GetComponent<BehaviorMecanim>().Node_OrientTowards(police.transform.position),
-                                                    new LeafWait(1000));
+                                                    new LeafWait(500));
 
         return new SequenceParallel(policeGoToMeeting, citizenGoToMeeting, mayorGoToMeeting);
     }
@@ -140,34 +140,32 @@ public class MyBehaviorTree2 : MonoBehaviour
     protected Node HaveTownMeeting()
     {
         Sequence policeAtMeeting= new Sequence(   police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
-                                                    new LeafWait(1000),
-                                                    police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
-                                                    new LeafWait(1000),
+                                                    new LeafWait(500),
+                                                    police.GetComponent<BehaviorMecanim>().Node_HandAnimation("BOW", true),
+                                                    new LeafWait(500),
                                                    // police.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINT", true),
-                                                    new LeafWait(1000),
+                                                    new LeafWait(500),
                                                     police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
-                                                    new LeafWait(1000),
+                                                    new LeafWait(500),
                                                     police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", false)
                                                     );
 
         Sequence citizenAtMeeting = new Sequence(participant.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
-                                            new LeafWait(1000),
-                                           // participant.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINT", true),
-                                            new LeafWait(1000),
-                                            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("B_Talking_On_Phone", true),
-                                            new LeafWait(1000),
+                                            new LeafWait(500),
+                                            participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true),
+                                            new LeafWait(5000),
                                             participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("ARMFLEX", true),
-                                            new LeafWait(1000),
+                                            new LeafWait(500),
                                             participant.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", false)
                                             );
 
 
         Sequence mayorsMeeting = new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
-                                                new LeafWait(1000),
+                                                new LeafWait(500),
                                                 mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("CROWDPUMP", true),
-                                                new LeafWait(1000),
+                                                new LeafWait(500),
                                                 mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
-                                                new LeafWait(1000),
+                                                new LeafWait(500),
                                                 mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", false)
                                                //mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINT", true)
                                                );
@@ -186,27 +184,27 @@ public class MyBehaviorTree2 : MonoBehaviour
     {
         return new Sequence (
             participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint2.position),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_GoTo(pushThroughPoint2.position),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("PUSHING", true),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("ARMFLEX", true),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint2.position),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint1.position),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_GoTo(pushThroughPoint1.position),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("PUSHING", true),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("ARMFLEX", true),
-            new LeafWait(2000),
+            new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint1.position),
-            new LeafWait(2000)
+            new LeafWait(500)
             //participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", true)
-            //new LeafWait(2000)
+            //new LeafWait(500)
             );
     }
 
@@ -216,7 +214,7 @@ public class MyBehaviorTree2 : MonoBehaviour
         //print(position);
 
         //this was the original behaviour
-        return new Sequence(police.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(1000));
+        return new Sequence(police.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(500));
     }
 
     protected Node MO_ApproachAndWait(Transform target)
@@ -226,21 +224,21 @@ public class MyBehaviorTree2 : MonoBehaviour
         //print(position);
 
         //this was the original behaviour
-        return new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(2000));
+        return new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(500));
     }
 
     protected Node ST_KarateGreet()
     {
 
         //print("Sending KARATEGREET Command");
-        return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true), new LeafWait(1000));
+        return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true), new LeafWait(500));
     }
     protected Node ST_Bow()
     {
         //Val<Vector3> position = Val.V(() => target.position);
 
         //print("Sending BOW Command");
-        return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BOW", true), new LeafWait(1000));
+        return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BOW", true), new LeafWait(500));
     }
 
     protected Node ST_ApproachAndGrab(Transform target)
@@ -250,7 +248,7 @@ public class MyBehaviorTree2 : MonoBehaviour
         //this was the original behaviour
         return new Sequence(participant.GetComponent<BehaviorMecanim>().Node_GoTo(position), 
                             participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("PICKUPRIGHT", true), 
-                            new LeafWait(1000));
+                            new LeafWait(500));
     }
 
     private Transform GrabThis()
@@ -290,6 +288,11 @@ public class MyBehaviorTree2 : MonoBehaviour
         mayor.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", false));
     }
 
+    protected Node Escape()
+    {
+        return new SelectorParallel(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(this.stride3.position),this.Escape());
+    }
+
     protected Node BuildTreeRoot()
     {
         Val<float> pp = Val.V(() => police.transform.position.z);
@@ -302,10 +305,10 @@ public class MyBehaviorTree2 : MonoBehaviour
             new Sequence(
                 this.ST_KarateGreet(),
                 this.ST_PushCrates(),
-                new LeafWait(1000)                
+                new LeafWait(500)                
                 );
-        Node trigger = new SequenceShuffle(new LeafAssert(act), 
-                                            this.PO_ApproachAndWait(this.wander1), 
+        Node trigger = new Sequence(new LeafAssert(act),
+                                            this.PO_ApproachAndWait(this.wander1),
                                             this.PO_ApproachAndWait(this.wander2), 
                                             this.PO_ApproachAndWait(this.wander3),
                                             this.PO_ApproachAndWait(this.wander4),
@@ -314,23 +317,36 @@ public class MyBehaviorTree2 : MonoBehaviour
                                             this.PO_ApproachAndWait(this.wander7),
                                             this.PO_ApproachAndWait(this.wander8));
 
-        Node oversee = new SequenceShuffle(new LeafAssert(mact),
+        Node oversee = new SequenceShuffle(new LeafAssert(mact), mayor.GetComponent<BehaviorMecanim>().Node_GoTo(townMeetingLoc.position),
+                                            new Sequence(
                                             this.MO_ApproachAndWait(this.stride1),
+                                            new Sequence(this.MO_ApproachAndWait(this.stride3),
+                                                        new Selector(
+                                                            new Sequence(
+                                                                this.MO_ApproachAndWait(this.stride4),
+                                                                new LeafWait(500),
+                                                                new Selector(this.MO_ApproachAndWait(this.stride3),
+                                                                    new SelectorShuffle(
+                                                                        mayor.GetComponent<BehaviorMecanim>().Node_BodyAnimation("TALKING ON PHONE", true))),
+                                                                        this.MO_ApproachAndWait(this.stride3)),
+                                                            new Sequence (
+                                                                mayor.GetComponent<BehaviorMecanim>().Node_BodyAnimation("TALKING ON PHONE", true),
+                                                                new LeafWait(500),
+                                                                this.MO_ApproachAndWait(this.stride3)))),
+
                                             this.MO_ApproachAndWait(this.stride2),
-                                            this.MO_ApproachAndWait(this.stride3),
-                                            this.MO_ApproachAndWait(this.stride4),
                                             this.MO_ApproachAndWait(this.stride5),
                                             this.MO_ApproachAndWait(this.stride6),
                                             this.MO_ApproachAndWait(this.stride7),
-                                            this.MO_ApproachAndWait(this.stride8));
+                                            this.MO_ApproachAndWait(this.stride8)));
 
         //Node mayorsPropoganda = new Sequence(oversee, this.CallTownMeeting()); 
 
         Node root = new DecoratorLoop(
                         new DecoratorForceStatus(RunStatus.Success, new SequenceShuffle(
                             new SelectorParallel(trigger, roaming, oversee),
-                            new LeafWait(2000),
-                            new Sequence (this.GoToMeeting(), new LeafWait(2000), this.HaveTownMeeting()) 
+                            new LeafWait(500),
+                            new Sequence (this.GoToMeeting(), new LeafWait(500), this.HaveTownMeeting()) 
                             )));
 
         
