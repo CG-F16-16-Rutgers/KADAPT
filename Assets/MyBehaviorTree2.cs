@@ -14,14 +14,16 @@ public class MyBehaviorTree2 : MonoBehaviour
     public Transform wander7;
     public Transform wander8;
 
-    public Transform stride1;
-    public Transform stride2;
-    public Transform stride3;
-    public Transform stride4;
-    public Transform stride5;
-    public Transform stride6;
-    public Transform stride7;
-    public Transform stride8;
+    public Transform mayorStride1;
+    public Transform mayorStride2;
+    public Transform mayorStride3;
+    public Transform mayorStride4;
+    public Transform mayorStride5;
+    public Transform mayorStride6;
+    public Transform mayorStride7;
+    public Transform mayorStride8;
+
+    public Transform barrierFlag;
 
     public Transform setUpPoint1;
     public Transform pushThroughPoint1;
@@ -30,91 +32,218 @@ public class MyBehaviorTree2 : MonoBehaviour
     public GameObject participant;
 	public GameObject police;
     public GameObject mayor;
+    public GameObject TomCluster1Clone1;
+    public GameObject TomCluster1Clone2;
+    public GameObject TomCluster1Clone3;
+    public GameObject TomCluster2Clone1;
+    public GameObject TomCluster2Clone2;
+    public GameObject TomCluster2Clone3;
+    public GameObject TomCluster2Clone4;
+
     public GameObject[] pickup;
     public Transform townMeetingLoc;
 
-	private BehaviorAgent behaviorAgent;
+	private BehaviorAgent behaviorAgentCoreAct1;
+    private BehaviorAgent behaviorAgentCoreAct1Mayor;
+    private BehaviorAgent behaviorAgentIntermission1Mayor;
+    private BehaviorAgent behaviorAgentCoreAct2Mayor;
 
-    private bool TownMeeting = false;
-    private static bool BarrierSelected;
+    private BehaviorAgent behaviorAgentFringeCluster1Start;
+    private BehaviorAgent behaviorAgentFringeCluster2Start;
+    private BehaviorAgent behaviorAgentFringeCluster1Mayor;
+    private BehaviorAgent behaviorAgentFringeCluster2Mayor;
+    private BehaviorAgent behaviorAgentCoreAct3;
+
     private GameObject barrier;
+
+    int fCounter;
+
+    int pushedNum;
+
+    bool mVisitedTCC1Recently;
+    bool mVisitedTCC2Recently;
+    bool mVisitedEndRecently;
+    bool mVisitedRoom;
+    bool mBlocked;
+    bool mTrapped;
+    bool m2ndStep;
+    bool pPushed;
+
     // Use this for initialization
     void Start ()
 	{
-		behaviorAgent = new BehaviorAgent (this.BuildTreeRoot ());
-		BehaviorManager.Instance.Register (behaviorAgent);
-		behaviorAgent.StartBehavior ();
+		behaviorAgentCoreAct1 = new BehaviorAgent (this.CoreAct1());
+		BehaviorManager.Instance.Register (behaviorAgentCoreAct1);
+        behaviorAgentCoreAct1.StartBehavior();
+
+        behaviorAgentFringeCluster1Start = new BehaviorAgent(this.TomCloneCluster1());
+        BehaviorManager.Instance.Register(behaviorAgentFringeCluster1Start);
+        behaviorAgentFringeCluster1Start.StartBehavior();
+
+        behaviorAgentFringeCluster2Start = new BehaviorAgent(this.TomCloneCluster2());
+        BehaviorManager.Instance.Register(behaviorAgentFringeCluster2Start);
+        behaviorAgentFringeCluster2Start.StartBehavior();
+
+        behaviorAgentFringeCluster1Mayor = new BehaviorAgent(this.MayorAtCluster1());
+        BehaviorManager.Instance.Register(behaviorAgentFringeCluster1Mayor);
+
+        behaviorAgentFringeCluster2Mayor = new BehaviorAgent(this.MayorAtCluster2());
+        BehaviorManager.Instance.Register(behaviorAgentFringeCluster2Mayor);
+
+        behaviorAgentCoreAct1Mayor = new BehaviorAgent(this.CoreAct1Mayor());
+        BehaviorManager.Instance.Register(behaviorAgentCoreAct1Mayor);
+        behaviorAgentCoreAct1Mayor.StartBehavior();
+
+        behaviorAgentIntermission1Mayor = new BehaviorAgent(this.CoreIntermission1Mayor());
+        BehaviorManager.Instance.Register(behaviorAgentIntermission1Mayor);
+
+        behaviorAgentCoreAct2Mayor = new BehaviorAgent(this.CoreAct2Mayor());
+        BehaviorManager.Instance.Register(behaviorAgentCoreAct2Mayor);
+
+        behaviorAgentCoreAct3 = new BehaviorAgent(this.CoreAct3());
+        BehaviorManager.Instance.Register(behaviorAgentCoreAct3);
+
+        mVisitedTCC1Recently = false;
+        mVisitedTCC2Recently = false;
+        mBlocked = false;
+        mTrapped = false;
+        m2ndStep = false;
+        mVisitedRoom = false;
+        pPushed = false;
+
 
 
         barrier = GameObject.FindGameObjectWithTag("Barrier");
+        fCounter = 0;
+
+        pushedNum = 0;
     }
 
-	// Update is called once per frame
-	void Update ()
-	{
-        /*if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-                Vector3 position = barrier.transform.position;
-                position.x++;
-                barrier.transform.position = position;
-
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.DownArrow))
         {
 
-                Vector3 position = barrier.transform.position;
-                position.x--;
-                barrier.transform.position = position;
-
-        }
-        else*/ if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-
-                Vector3 position = barrier.transform.position;
-                position.x++;
-                barrier.transform.position = position;
+            Vector3 position = barrier.transform.position;
+            position.x++;
+            barrier.transform.position = position;
 
         }
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
 
-                Vector3 position = barrier.transform.position;
-                position.x--;
-                barrier.transform.position = position;
+            Vector3 position = barrier.transform.position;
+            position.x--;
+            barrier.transform.position = position;
 
+        }
+
+        if (m2ndStep) return;
+
+        if (Vector3.Distance(participant.transform.position, setUpPoint1.position) < 2.0f && !pPushed)
+        {
+            pPushed = true;
+            pushedNum++;
+        }
+
+        if (Vector3.Distance(participant.transform.position, setUpPoint1.position) > 3.0f && pPushed)
+        {
+            pPushed = false;
+        }
+
+
+        if (Vector3.Distance(mayor.transform.position, mayorStride1.position) < 3.0f  && !mVisitedTCC1Recently)
+        {
+            behaviorAgentFringeCluster1Start.StopBehavior();
+            behaviorAgentFringeCluster1Mayor.StartBehavior();
+            mVisitedTCC1Recently = true;
+            print("Mayor Here");
+        }
+
+        if (Vector3.Distance(mayor.transform.position, mayorStride1.position) > 5.0f && mVisitedTCC1Recently)
+        {
+            behaviorAgentFringeCluster1Mayor.StopBehavior();
+            behaviorAgentFringeCluster1Start.StartBehavior();
+            mVisitedTCC1Recently = false;
+            print("Mayor gone");
+        }
+
+        if (Vector3.Distance(mayor.transform.position, mayorStride3.position) < 3.0f && !mVisitedTCC2Recently)
+        {
+            behaviorAgentFringeCluster2Start.StopBehavior();
+            behaviorAgentFringeCluster2Mayor.StartBehavior();
+            mVisitedTCC2Recently = true;
+            print("Mayor Here");
+        }
+
+        if (Vector3.Distance(mayor.transform.position, mayorStride3.position) > 5.0f && mVisitedTCC2Recently)
+        {
+            behaviorAgentFringeCluster2Mayor.StopBehavior();
+            behaviorAgentFringeCluster2Start.StartBehavior();
+            mVisitedTCC2Recently = false;
+            print("Mayor gone");
+        }
+
+
+        if (Vector3.Distance(mayor.transform.position, mayorStride8.position) < 3.0f && !mVisitedEndRecently)
+        {
+            behaviorAgentCoreAct1.StopBehavior();
+            behaviorAgentFringeCluster2Mayor.StartBehavior();
+            mVisitedEndRecently = true;
+            print("Mayor Here");
+        }
+
+        if (Vector3.Distance(mayor.transform.position, mayorStride8.position) > 5.0f && mVisitedEndRecently)
+        {
+            behaviorAgentFringeCluster2Mayor.StopBehavior();
+            behaviorAgentFringeCluster2Start.StartBehavior();
+            mVisitedEndRecently = false;
+            print("Mayor gone");
+        }
+
+            fCounter++;
+        if (fCounter % 100 == 0)
+        {
+            fCounter = 0;
+            print(Vector3.Distance(barrier.transform.position, barrierFlag.position));
+
+            if (mBlocked && !m2ndStep) print("Blocked");
+            if (mTrapped) print("Trapped");
+            print(m2ndStep);
+        }
+
+        if ((Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f) && (Vector3.Distance(mayor.transform.position, mayorStride3.position) < 2.0f))
+        {
+            mVisitedRoom = true;
+            behaviorAgentCoreAct1Mayor.StopBehavior();
+            behaviorAgentCoreAct2Mayor.StartBehavior(); 
+        }
+
+        if ((Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f) && (Vector3.Distance(mayor.transform.position, mayorStride4.position) < 2.0f) && !mTrapped)
+        {
+            mTrapped = true;
+            mVisitedRoom = true;
+            behaviorAgentCoreAct1Mayor.StopBehavior();
+            behaviorAgentIntermission1Mayor.StartBehavior();
+
+        }
+
+        if (mTrapped && !(Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f))
+        {
+            mTrapped = false;
+            behaviorAgentIntermission1Mayor.StopBehavior();
+            behaviorAgentCoreAct2Mayor.StartBehavior();
+        }
+
+
+        if (mVisitedRoom && pushedNum%2==0)
+        {
+            behaviorAgentCoreAct2Mayor.StopBehavior();
+            behaviorAgentCoreAct1.StopBehavior();
+            behaviorAgentCoreAct3.StartBehavior();
         }
     }
-
-    /*	protected Node ST_ApproachAndWait(Transform target)
-        {
-            Val<Vector3> position = Val.V (() => target.position);
-
-            //print("Sending BOW Command");
-            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BOW", true), new LeafWait(500));
-
-            //print("Sending KARATEGREET Command");
-            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true), new LeafWait(500));
-
-            //this was the original behaviour
-            return new Sequence( participant.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(500));
-        }
-
-        protected Node BuildTreeRoot()
-        {
-            Val<float> pp = Val.V (() => police.transform.position.z);
-            Func<bool> act = () => (police.transform.position.z > 10);
-            Node roaming = new DecoratorLoop (
-                new Sequence(
-                    this.ST_ApproachAndWait(this.wander1),
-                    this.ST_ApproachAndWait(this.wander2),
-                    this.ST_ApproachAndWait(this.wander3)));
-            Node trigger = new DecoratorLoop (new LeafAssert (act));
-            Node root = new DecoratorLoop (new DecoratorForceStatus (RunStatus.Success, new SequenceParallel(trigger, roaming)));
-            return root;
-
-
-            //return roaming;
-        }*/
 
     protected Node GoToMeeting()
     {
@@ -136,8 +265,103 @@ public class MyBehaviorTree2 : MonoBehaviour
         return new SequenceParallel(policeGoToMeeting, citizenGoToMeeting, mayorGoToMeeting);
     }
 
+    protected Node TomCloneCluster1()
+    {
+        SequenceParallel idle = new SequenceParallel(TomCluster1Clone1Acts(), TomCluster1Clone2Acts(), TomCluster1Clone3Acts());
+        return idle;
 
-    protected Node HaveTownMeeting()
+    }
+
+    protected Node MayorAtCluster1()
+    {
+        SequenceParallel mayorHere = new SequenceParallel(
+                                                  new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_OrientTowards(wander1.position),
+                                                                    TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true)),
+                                                  new Sequence(TomCluster1Clone2.GetComponent<BehaviorMecanim>().Node_OrientTowards(wander1.position),
+                                                                    TomCluster1Clone2.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true)),
+                                                  new Sequence(TomCluster1Clone3.GetComponent<BehaviorMecanim>().Node_OrientTowards(wander1.position),
+                                                                    TomCluster1Clone3.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true)));
+        return new DecoratorLoop(mayorHere);
+    }
+
+    protected Node MayorAtCluster2()
+    {
+        SequenceParallel mayorHere = new SequenceParallel(
+                                                  new Sequence(TomCluster2Clone1.GetComponent<BehaviorMecanim>().Node_OrientTowards(wander3.position),
+                                                                    TomCluster2Clone1.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true)),
+                                                  new Sequence(TomCluster2Clone2.GetComponent<BehaviorMecanim>().Node_OrientTowards(wander1.position),
+                                                                    TomCluster2Clone2.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true)),
+                                                  new Sequence(TomCluster2Clone3.GetComponent<BehaviorMecanim>().Node_OrientTowards(wander1.position),
+                                                                    TomCluster2Clone3.GetComponent<BehaviorMecanim>().Node_BodyAnimation("KARATEGREET", true)));
+        return new DecoratorLoop(mayorHere);
+    }
+
+    protected Node TomCluster1Clone1Acts()
+    {
+
+        return new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_OrientTowards(mayorStride1.position), new LeafWait(500),
+                        new DecoratorLoop(
+                            new SelectorShuffle( 
+                                   new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_OrientTowards(TomCluster1Clone2.transform.position), 
+                                                    new LeafWait(4000), TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINTING", true), new LeafWait(4000) ,TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINTING", false)),
+                                   new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_OrientTowards(TomCluster1Clone3.transform.position),
+                                                    new LeafWait(4000), TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINTING", true), new LeafWait(4000) ,TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("POINTING", false)),
+                                   new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("YAWN", true), new LeafWait(500)),
+                                   new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("CRY", true), new LeafWait(500)),
+                                   new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("THINK", true), new LeafWait(500))
+                                   )));
+    }
+
+    protected Node TomCluster1Clone2Acts()
+    {
+        return new Sequence(TomCluster1Clone2.GetComponent<BehaviorMecanim>().Node_OrientTowards(mayorStride1.position), new LeafWait(500),
+                                new DecoratorLoop (new SelectorShuffle(TomCluster1Clone2.GetComponent<BehaviorMecanim>().Node_HandAnimation("CRY", true), new LeafWait(500),
+                                                    TomCluster1Clone2.GetComponent<BehaviorMecanim>().Node_HandAnimation("THINK", true), new LeafWait(500))
+            ));
+    }
+
+    protected Node TomCluster1Clone3Acts()
+    {
+        return new Sequence(TomCluster1Clone3.GetComponent<BehaviorMecanim>().Node_OrientTowards(mayorStride1.position), new LeafWait(500),
+                                new DecoratorLoop (new SelectorShuffle(new Sequence (TomCluster1Clone3.GetComponent<BehaviorMecanim>().Node_HandAnimation("TEXTING", true), new LeafWait(500)),
+                                    new Sequence(TomCluster1Clone3.GetComponent<BehaviorMecanim>().Node_HandAnimation("THINK", true), new LeafWait(500)),
+                                    new Sequence(TomCluster1Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("CRY", true), new LeafWait(500)))));
+    }
+
+    protected Node TomCloneCluster2()
+    {
+        return new SequenceParallel(TomCluster2Clone1Acts(), TomCluster2Clone2Acts(), TomCluster2Clone3Acts() , TomCluster2Clone4Acts());
+    }
+
+    protected Node TomCluster2Clone1Acts()
+    {
+        return new Sequence(TomCluster2Clone1.GetComponent<BehaviorMecanim>().Node_OrientTowards(mayorStride3.position), new LeafWait(500),
+            new DecoratorLoop(new SelectorShuffle(TomCluster2Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("CRY", true), new LeafWait(500),
+                                                    TomCluster2Clone1.GetComponent<BehaviorMecanim>().Node_HandAnimation("THINK", true), new LeafWait(500))));
+    }
+
+    protected Node TomCluster2Clone2Acts()
+    {
+        return new Sequence(TomCluster2Clone2.GetComponent<BehaviorMecanim>().Node_OrientTowards(mayorStride3.position), new LeafWait(500),
+            new DecoratorLoop(new SelectorShuffle(TomCluster2Clone2.GetComponent<BehaviorMecanim>().Node_HandAnimation("CRY", true), new LeafWait(500),
+                                                    TomCluster2Clone2.GetComponent<BehaviorMecanim>().Node_HandAnimation("THINK", true), new LeafWait(500))));
+    }
+
+    protected Node TomCluster2Clone3Acts()
+    {
+        return new Sequence(TomCluster2Clone3.GetComponent<BehaviorMecanim>().Node_OrientTowards(mayorStride3.position), new LeafWait(500),
+            new DecoratorLoop(new SelectorShuffle(TomCluster2Clone3.GetComponent<BehaviorMecanim>().Node_HandAnimation("CRY", true), new LeafWait(500),
+                                                    TomCluster2Clone3.GetComponent<BehaviorMecanim>().Node_HandAnimation("THINK", true), new LeafWait(500))));
+    }
+
+    protected Node TomCluster2Clone4Acts()
+    {
+        return new Sequence(TomCluster2Clone4.GetComponent<BehaviorMecanim>().Node_OrientTowards(mayorStride3.position), new LeafWait(500),
+            new DecoratorLoop(new SelectorShuffle(TomCluster2Clone4.GetComponent<BehaviorMecanim>().Node_HandAnimation("CRY", true), new LeafWait(500),
+                                                    TomCluster2Clone4.GetComponent<BehaviorMecanim>().Node_HandAnimation("THINK", true), new LeafWait(500))));
+    }
+
+    protected Node HaveTownPrincicpalsMeeting()
     {
         Sequence policeAtMeeting= new Sequence(   police.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
                                                     new LeafWait(500),
@@ -173,13 +397,6 @@ public class MyBehaviorTree2 : MonoBehaviour
         return new SequenceParallel(policeAtMeeting, citizenAtMeeting, mayorsMeeting) ; 
     }
 
-    /*protected Node CallTownMeeting()
-    {
-        //TownMeeting = true;
-        return mayor.GetComponent<BehaviorMecanim>().Node_GoToUpToRadius(townMeetingLoc.position, 1.0f);
-    }*/
-
-
     protected Node ST_PushCrates()
     {
         return new Sequence (
@@ -203,8 +420,6 @@ public class MyBehaviorTree2 : MonoBehaviour
             new LeafWait(500),
             participant.GetComponent<BehaviorMecanim>().Node_GoTo(setUpPoint1.position),
             new LeafWait(500)
-            //participant.GetComponent<BehaviorMecanim>().Node_BodyAnimation("BREAKDANCE", true)
-            //new LeafWait(500)
             );
     }
 
@@ -217,14 +432,14 @@ public class MyBehaviorTree2 : MonoBehaviour
         return new Sequence(police.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(500));
     }
 
-    protected Node MO_ApproachAndWait(Transform target)
+    protected Node MO_ApproachAndWait(Transform target, int waitInMS)
     {
-        Val<Vector3> position = Val.V(() => target.position);
+        //Val<Vector3> position = Val.V(() => target.position);
 
         //print(position);
 
         //this was the original behaviour
-        return new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(position), new LeafWait(500));
+        return new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(target.position), new LeafWait(waitInMS));
     }
 
     protected Node ST_KarateGreet()
@@ -290,25 +505,58 @@ public class MyBehaviorTree2 : MonoBehaviour
 
     protected Node Escape()
     {
-        return new SelectorParallel(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(this.stride3.position),this.Escape());
+        return new SelectorParallel(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(this.mayorStride3.position),this.Escape());
     }
 
-    protected Node BuildTreeRoot()
+    protected Node CoreAct3()
     {
-        Val<float> pp = Val.V(() => police.transform.position.z);
-        Func<bool> act = () => (police.transform.position.z - participant.transform.position.z< 10);
+        return new Sequence(this.GoToMeeting(), new LeafWait(500), this.HaveTownPrincicpalsMeeting());
+    }
 
-        Val<float> mpp = Val.V(() => mayor.transform.position.z);
-        Func<bool> mact = () => (mayor.transform.position.z - participant.transform.position.z < 10);
+    protected Node CoreAct1Mayor()
+    {
+        return new DecoratorForceStatus(RunStatus.Running, new DecoratorLoop( new Sequence(mayor.GetComponent<BehaviorMecanim>().Node_GoTo(townMeetingLoc.position),
+                                            this.MO_ApproachAndWait(this.mayorStride1, 5000),
+                                            mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                            new LeafWait(3000),
+                                            this.MO_ApproachAndWait(this.mayorStride3, 500),
+                                            mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                            new LeafWait(3000),
+                                            this.MO_ApproachAndWait(this.mayorStride4, 500),
+                                            this.MO_ApproachAndWait(this.mayorStride2, 500),
+                                            this.MO_ApproachAndWait(this.mayorStride5, 500),
+                                            this.MO_ApproachAndWait(this.mayorStride6, 500),
+                                            this.MO_ApproachAndWait(this.mayorStride7, 500),
+                                            this.MO_ApproachAndWait(this.mayorStride8, 500))));
 
+    }
+
+    protected Node CoreIntermission1Mayor()
+    {
+        return new DecoratorLoop(new Sequence(new LeafWait(500), mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("TEXTING", true)));
+    }
+
+    protected Node CoreAct2Mayor()
+    {
+        return new DecoratorLoop(new Sequence( this.MO_ApproachAndWait(this.mayorStride5, 500),
+                                               this.MO_ApproachAndWait(this.mayorStride6, 500),
+                                               this.MO_ApproachAndWait(this.mayorStride7, 500),
+                                               this.MO_ApproachAndWait(this.mayorStride8, 500),
+                                               this.MO_ApproachAndWait(this.mayorStride1, 5000),
+                                               mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
+                                               new LeafWait(3000),
+                                               this.MO_ApproachAndWait(this.mayorStride2, 500)));
+    }
+
+    protected Node CoreAct1()
+    {
         Node roaming = //new DecoratorLoop(
             new Sequence(
                 this.ST_KarateGreet(),
                 this.ST_PushCrates(),
                 new LeafWait(500)                
                 );
-        Node trigger = new Sequence(new LeafAssert(act),
-                                            this.PO_ApproachAndWait(this.wander1),
+        Node trigger = new Sequence(        this.PO_ApproachAndWait(this.wander1),
                                             this.PO_ApproachAndWait(this.wander2), 
                                             this.PO_ApproachAndWait(this.wander3),
                                             this.PO_ApproachAndWait(this.wander4),
@@ -317,37 +565,9 @@ public class MyBehaviorTree2 : MonoBehaviour
                                             this.PO_ApproachAndWait(this.wander7),
                                             this.PO_ApproachAndWait(this.wander8));
 
-        Node oversee = new SequenceShuffle(new LeafAssert(mact), mayor.GetComponent<BehaviorMecanim>().Node_GoTo(townMeetingLoc.position),
-                                            new Sequence(
-                                            this.MO_ApproachAndWait(this.stride1),
-                                            new Sequence(this.MO_ApproachAndWait(this.stride3),
-                                                        new Selector(
-                                                            new Sequence(
-                                                                this.MO_ApproachAndWait(this.stride4),
-                                                                new LeafWait(500),
-                                                                new Selector(this.MO_ApproachAndWait(this.stride3),
-                                                                    new SelectorShuffle(
-                                                                        mayor.GetComponent<BehaviorMecanim>().Node_BodyAnimation("TALKING ON PHONE", true))),
-                                                                        this.MO_ApproachAndWait(this.stride3)),
-                                                            new Sequence (
-                                                                mayor.GetComponent<BehaviorMecanim>().Node_BodyAnimation("TALKING ON PHONE", true),
-                                                                new LeafWait(500),
-                                                                this.MO_ApproachAndWait(this.stride3)))),
-
-                                            this.MO_ApproachAndWait(this.stride2),
-                                            this.MO_ApproachAndWait(this.stride5),
-                                            this.MO_ApproachAndWait(this.stride6),
-                                            this.MO_ApproachAndWait(this.stride7),
-                                            this.MO_ApproachAndWait(this.stride8)));
-
-        //Node mayorsPropoganda = new Sequence(oversee, this.CallTownMeeting()); 
-
-        Node root = new DecoratorLoop(
-                        new DecoratorForceStatus(RunStatus.Success, new SequenceShuffle(
-                            new SelectorParallel(trigger, roaming, oversee),
-                            new LeafWait(500),
-                            new Sequence (this.GoToMeeting(), new LeafWait(500), this.HaveTownMeeting()) 
-                            )));
+        Node root = new DecoratorForceStatus( RunStatus.Success, 
+                            new SequenceParallel(new DecoratorLoop(trigger), new DecoratorLoop(roaming))
+                            );
 
         
 
