@@ -206,38 +206,41 @@ public class MyBehaviorTree2 : MonoBehaviour
         if (fCounter % 100 == 0)
         {
             fCounter = 0;
-            print(Vector3.Distance(barrier.transform.position, barrierFlag.position));
+            //print(Vector3.Distance(barrier.transform.position, barrierFlag.position));
 
-            if (mBlocked && !m2ndStep) print("Blocked");
+            /*if (mBlocked && !m2ndStep) print("Blocked");
             if (mTrapped) print("Trapped");
-            print(m2ndStep);
+            print(m2ndStep);*/
         }
 
-        if ((Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f) && (Vector3.Distance(mayor.transform.position, mayorStride3.position) < 2.0f))
+        if ((Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f) && (Vector3.Distance(mayor.transform.position, mayorStride3.position) < 3.0f))
         {
             mVisitedRoom = true;
             behaviorAgentCoreAct1Mayor.StopBehavior();
             behaviorAgentCoreAct2Mayor.StartBehavior(); 
         }
 
-        if ((Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f) && (Vector3.Distance(mayor.transform.position, mayorStride4.position) < 2.0f) && !mTrapped)
+        if ((Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f) && (Vector3.Distance(mayor.transform.position, mayorStride4.position) < 4.0f) && !mTrapped)
         {
             mTrapped = true;
             mVisitedRoom = true;
             behaviorAgentCoreAct1Mayor.StopBehavior();
             behaviorAgentIntermission1Mayor.StartBehavior();
+            print("Poop");
 
         }
 
-        if (mTrapped && !(Vector3.Distance(barrier.transform.position, barrierFlag.position) < 8.0f))
+        if (mTrapped && (Vector3.Distance(barrier.transform.position, barrierFlag.position) >= 8.0f))
         {
+
+            print("Pain");
             mTrapped = false;
             behaviorAgentIntermission1Mayor.StopBehavior();
             behaviorAgentCoreAct2Mayor.StartBehavior();
         }
 
 
-        if (mVisitedRoom && pushedNum%2==0)
+        if (mVisitedRoom && pushedNum%2==0 && !mTrapped)
         {
             behaviorAgentCoreAct2Mayor.StopBehavior();
             behaviorAgentCoreAct1.StopBehavior();
@@ -519,7 +522,7 @@ public class MyBehaviorTree2 : MonoBehaviour
                                             this.MO_ApproachAndWait(this.mayorStride1, 5000),
                                             mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
                                             new LeafWait(3000),
-                                            this.MO_ApproachAndWait(this.mayorStride3, 500),
+                                            this.MO_ApproachAndWait(this.mayorStride3, 5000),
                                             mayor.GetComponent<BehaviorMecanim>().Node_HandAnimation("WAVE", true),
                                             new LeafWait(3000),
                                             this.MO_ApproachAndWait(this.mayorStride4, 500),
